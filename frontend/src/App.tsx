@@ -1,25 +1,32 @@
 import { useEffect, useState } from 'react'
-
-type Status = 'checking' | 'ok' | 'failed'
+import { createTask, listTasks } from './api'
+import TaskCard from './components/TaskCard'
+import TaskForm from './components/TaskForm'
+import type { Task } from './types'
 
 function App() {
-  const [status, setStatus] = useState<Status>('checking')
+  const [tasks, setTasks] = useState<Task[]>([])
 
   useEffect(() => {
-    fetch('/api/health')
-      .then((res) => setStatus(res.ok ? 'ok' : 'failed'))
-      .catch(() => setStatus('failed'))
+    listTasks().then(setTasks).catch(() => {
+      // 불러오기 실패 화면은 이슈 #4 에서 다룬다.
+    })
   }, [])
+
+  async function handleCreate(title: string, description: string) {
+    const created = await createTask(title, description)
+    setTasks((prev) => [...prev, created])
+  }
 
   return (
     <main>
       <h1>task-flow</h1>
-      <p>
-        API 연결:{' '}
-        {status === 'checking' && '확인 중'}
-        {status === 'ok' && '연결됨'}
-        {status === 'failed' && '연결 실패 (API 서버가 켜져 있는지 확인하세요)'}
-      </p>
+      <TaskForm onCreate={handleCreate} />
+      <ul className="task-list">
+        {tasks.map((t) => (
+          <TaskCard key={t.id} task={t} />
+        ))}
+      </ul>
     </main>
   )
 }
