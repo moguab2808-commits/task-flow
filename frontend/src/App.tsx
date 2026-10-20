@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react'
-import { createTask, listTasks } from './api'
+import { changeStatus, createTask, listTasks } from './api'
 import TaskCard from './components/TaskCard'
 import TaskForm from './components/TaskForm'
-import type { Task } from './types'
+import type { Status, Task } from './types'
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -18,13 +18,18 @@ function App() {
     setTasks((prev) => [...prev, created])
   }
 
+  async function handleChangeStatus(id: number, status: Status) {
+    const updated = await changeStatus(id, status)
+    setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+  }
+
   return (
     <main>
       <h1>task-flow</h1>
       <TaskForm onCreate={handleCreate} />
       <ul className="task-list">
         {tasks.map((t) => (
-          <TaskCard key={t.id} task={t} />
+          <TaskCard key={t.id} task={t} onChangeStatus={handleChangeStatus} />
         ))}
       </ul>
     </main>

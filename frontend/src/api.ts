@@ -1,4 +1,4 @@
-import type { Task } from './types'
+import type { Status, Task } from './types'
 
 const BASE = 'http://localhost:8000/api/tasks'
 
@@ -37,5 +37,13 @@ export function createTask(title: string, description: string): Promise<Task> {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title, description }),
+  })
+}
+
+export function changeStatus(id: number, status: Status): Promise<Task> {
+  return request<Task>(`${BASE}/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ status }),
   })
 }

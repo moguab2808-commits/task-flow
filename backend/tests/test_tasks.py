@@ -49,3 +49,54 @@ def test_persists_after_restart(tmp_path, monkeypatch):
         c.post("/api/tasks", json={"title": "keep"})
     with TestClient(app) as c:
         assert [t["title"] for t in c.get("/api/tasks").json()] == ["keep"]
+
+
+def _make(client, title="a"):
+    return client.post("/api/tasks", json={"title": title}).json()
+
+
+@pytest.mark.parametrize("status", ["IN_PROGRESS", "DONE", "TODO"])
+def test_change_status_to_any_value(client, status):
+    t = _make(client)
+    client.patch(f"/api/tasks/{t['id']}", json={"status": "DONE"})
+    r = client.patch(f"/api/tasks/{t['id']}", json={"status": status})
+    assert r.status_code == 200
+    assert r.json()["status"] == status
+
+
+def test_change_status_keeps_title_and_description(client):
+    t = client.post("/api/tasks", json={"title": "a", "description": "d"}).json()
+    r = client.patch(f"/api/tasks/{t['id']}", json={"status": "DONE"}).json()
+    assert (r["title"], r["description"], r["created_at"]) == ("a", "d", t["created_at"])
+
+
+def test_change_status_only_affects_target(client):
+    a, b = _make(client, "a"), _make(client, "b")
+    client.patch(f"/api/tasks/{a['id']}", json={"status": "DONE"})
+    statuses = {t["title"]: t["status"] for t in client.get("/api/tasks").json()}
+    assert statuses == {"a": "DONE", "b": "TODO"}
+
+
+def test_status_persists_after_restart(tmp_path, monkeypatch):
+    monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "t.db"))
+    with TestClient(app) as c:
+        t = c.post("/api/tasks", json={"title": "a"}).json()
+        c.patch(f"/api/tasks/{t['id']}", json={"status": "IN_PROGRESS"})
+    with TestClient(app) as c:
+        assert c.get("/api/tasks").json()[0]["status"] == "IN_PROGRESS"
+
+
+def test_invalid_status_rejected(client):
+    t = _make(client)
+    assert client.patch(f"/api/tasks/{t['id']}", json={"status": "X"}).status_code == 422
+    assert client.get("/api/tasks").json()[0]["status"] == "TODO"
+
+
+def test_status_change_unknown_id_404(client):
+    assert client.patch("/api/tasks/999", json={"status": "DONE"}).status_code == 404
+
+
+def test_status_change_mixed_with_content_rejected(client):
+    t = _make(client)
+    r = client.patch(f"/api/tasks/{t['id']}", json={"status": "DONE", "title": "b"})
+    assert r.status_code == 422

@@ -30,3 +30,19 @@ def create_task(title: str, description: str) -> dict:
         return dict(row)
     finally:
         conn.close()
+
+
+def update_status(task_id: int, status: str) -> dict | None:
+    conn = connect()
+    try:
+        with conn:
+            cur = conn.execute(
+                "UPDATE tasks SET status = ?, updated_at = ? WHERE id = ?",
+                (status, _now(), task_id),
+            )
+        if cur.rowcount == 0:
+            return None
+        row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        return dict(row)
+    finally:
+        conn.close()

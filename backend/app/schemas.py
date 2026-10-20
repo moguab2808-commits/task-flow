@@ -26,3 +26,9 @@ class TaskOut(BaseModel):
     status: Status
     created_at: str
     updated_at: str
+
+
+class StatusChange(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    status: Status
