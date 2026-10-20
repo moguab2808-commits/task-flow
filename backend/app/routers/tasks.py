@@ -1,4 +1,5 @@
-from fastapi import APIRouter, HTTPException, Response
+from fastapi import APIRouter, Body, HTTPException, Response
+from pydantic import ValidationError
 
 from app import repository
 from app.schemas import ContentChange, StatusChange, TaskCreate, TaskOut
@@ -19,12 +20,21 @@ def create_task(body: TaskCreate):
 
 
 @router.patch("/{task_id}", response_model=TaskOut)
-def patch_task(task_id: int, body: StatusChange | ContentChange):
-    # 상태 변경과 내용 수정은 서로 다른 동작이다. 섞인 요청은 검증 단계에서 거절된다 (D-004).
-    if isinstance(body, StatusChange):
-        task = repository.update_status(task_id, body.status)
+def patch_task(task_id: int, body: dict = Body(...)):
+    # 상태 변경과 내용 수정은 서로 다른 동작이다. 섞인 요청은 거절한다 (D-004).
+    if "status" in body:
+        model: type[StatusChange] | type[ContentChange] = StatusChange
     else:
-        task = repository.update_content(task_id, body.title, body.description)
+        model = ContentChange
+    try:
+        parsed = model.model_validate(body)
+    except ValidationError as e:
+        detail = [{"loc": list(err["loc"]), "msg": err["msg"]} for err in e.errors()]
+        raise HTTPException(status_code=422, detail=detail) from e
+    if isinstance(parsed, StatusChange):
+        task = repository.update_status(task_id, parsed.status)
+    else:
+        task = repository.update_content(task_id, parsed.title, parsed.description)
     if task is None:
         raise HTTPException(status_code=404, detail=NOT_FOUND)
     return task

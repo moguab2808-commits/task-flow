@@ -2,7 +2,18 @@ import type { Status, Task } from './types'
 
 const BASE = 'http://localhost:8000/api/tasks'
 
-export class ApiError extends Error {}
+export class ApiError extends Error {
+  status?: number
+
+  constructor(message: string, status?: number) {
+    super(message)
+    this.status = status
+  }
+
+  get notFound(): boolean {
+    return this.status === 404
+  }
+}
 
 async function request<T>(url: string, init?: RequestInit): Promise<T> {
   let res: Response
@@ -12,7 +23,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
     throw new ApiError('API 서버에 연결하지 못했습니다. 서버가 켜져 있는지 확인해 주세요.')
   }
   if (!res.ok) {
-    throw new ApiError(await errorMessage(res))
+    throw new ApiError(await errorMessage(res), res.status)
   }
   if (res.status === 204) return undefined as T
   return (await res.json()) as T

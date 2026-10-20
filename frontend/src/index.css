@@ -77,3 +77,28 @@ main {
   gap: 0.5rem;
   margin-top: 0.5rem;
 }
+
+.status-message {
+  border-radius: 6px;
+  padding: 0.75rem 1rem;
+  margin: 0 0 1rem;
+  background: #f3f3f3;
+  color: #444;
+}
+
+.status-message p {
+  margin: 0 0 0.5rem;
+}
+
+.status-message p:last-child {
+  margin: 0;
+}
+
+.status-error {
+  background: #fde8ea;
+  color: #b00020;
+}
+
+.status-notice {
+  background: #fff3c4;
+}

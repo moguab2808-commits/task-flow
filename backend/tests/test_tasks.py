@@ -147,3 +147,25 @@ def test_delete_unknown_id_404(client):
     t = _make(client)
     assert client.delete(f"/api/tasks/{t['id']}").status_code == 204
     assert client.delete(f"/api/tasks/{t['id']}").status_code == 404
+
+
+def test_patch_blank_title_message_is_about_title(client):
+    t = _make(client)
+    r = client.patch(f"/api/tasks/{t['id']}", json={"title": " "})
+    assert r.status_code == 422
+    assert r.json()["detail"][0]["loc"] == ["title"]
+    assert "제목" in r.json()["detail"][0]["msg"]
+
+
+def test_storage_error_returns_500_with_message(client, monkeypatch):
+    import sqlite3
+
+    from app import repository
+
+    def boom(*_a, **_k):
+        raise sqlite3.OperationalError("disk I/O error")
+
+    monkeypatch.setattr(repository, "create_task", boom)
+    r = client.post("/api/tasks", json={"title": "a"})
+    assert r.status_code == 500
+    assert "다시 시도" in r.json()["detail"]
