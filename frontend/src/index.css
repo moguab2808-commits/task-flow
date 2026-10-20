@@ -102,3 +102,32 @@ main {
 .status-notice {
   background: #fff3c4;
 }
+
+.sections {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.section h2 {
+  font-size: 1.1rem;
+  margin: 0 0 0.5rem;
+}
+
+.section .count {
+  font-size: 0.8rem;
+  font-weight: normal;
+  color: #666;
+  background: #eee;
+  border-radius: 999px;
+  padding: 0.05rem 0.5rem;
+}
+
+.section-empty {
+  margin: 0;
+  color: #888;
+}
+
+.section .task-list {
+  margin: 0;
+}

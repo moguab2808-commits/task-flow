@@ -3,9 +3,12 @@ import { ApiError, changeStatus, createTask, deleteTask, listTasks, updateConten
 import StatusMessage from './components/StatusMessage'
 import TaskCard from './components/TaskCard'
 import TaskForm from './components/TaskForm'
+import { STATUS_LABEL } from './types'
 import type { Status, Task } from './types'
 
 type LoadState = 'loading' | 'ready' | 'error'
+
+const SECTIONS: Status[] = ['TODO', 'IN_PROGRESS', 'DONE']
 
 function App() {
   const [tasks, setTasks] = useState<Task[]>([])
@@ -88,17 +91,33 @@ function App() {
         <StatusMessage kind="empty" message="아직 카드가 없습니다. 위에서 첫 카드를 만들어 보세요." />
       )}
       {loadState === 'ready' && tasks.length > 0 && (
-        <ul className="task-list">
-          {tasks.map((t) => (
-            <TaskCard
-              key={t.id}
-              task={t}
-              onChangeStatus={handleChangeStatus}
-              onEdit={handleEdit}
-              onDelete={handleDelete}
-            />
-          ))}
-        </ul>
+        <div className="sections">
+          {SECTIONS.map((status) => {
+            const items = tasks.filter((t) => t.status === status)
+            return (
+              <section key={status} className="section" aria-label={STATUS_LABEL[status]}>
+                <h2>
+                  {STATUS_LABEL[status]} <span className="count">{items.length}</span>
+                </h2>
+                {items.length === 0 ? (
+                  <p className="section-empty">카드가 없습니다.</p>
+                ) : (
+                  <ul className="task-list">
+                    {items.map((t) => (
+                      <TaskCard
+                        key={t.id}
+                        task={t}
+                        onChangeStatus={handleChangeStatus}
+                        onEdit={handleEdit}
+                        onDelete={handleDelete}
+                      />
+                    ))}
+                  </ul>
+                )}
+              </section>
+            )
+          })}
+        </div>
       )}
     </main>
   )
