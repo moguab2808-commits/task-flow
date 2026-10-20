@@ -100,3 +100,50 @@ def test_status_change_mixed_with_content_rejected(client):
     t = _make(client)
     r = client.patch(f"/api/tasks/{t['id']}", json={"status": "DONE", "title": "b"})
     assert r.status_code == 422
+
+
+def test_edit_content_keeps_status(client):
+    t = _make(client)
+    client.patch(f"/api/tasks/{t['id']}", json={"status": "DONE"})
+    r = client.patch(f"/api/tasks/{t['id']}", json={"title": "b", "description": "d2"})
+    assert r.status_code == 200
+    body = r.json()
+    assert (body["title"], body["description"], body["status"]) == ("b", "d2", "DONE")
+
+
+def test_edit_can_clear_description(client):
+    t = client.post("/api/tasks", json={"title": "a", "description": "d"}).json()
+    r = client.patch(f"/api/tasks/{t['id']}", json={"title": "a", "description": ""})
+    assert r.json()["description"] == ""
+
+
+@pytest.mark.parametrize("title", ["", "  "])
+def test_edit_blank_title_rejected(client, title):
+    t = _make(client)
+    r = client.patch(f"/api/tasks/{t['id']}", json={"title": title})
+    assert r.status_code == 422
+    assert client.get("/api/tasks").json()[0]["title"] == "a"
+
+
+def test_edit_unknown_id_404(client):
+    assert client.patch("/api/tasks/999", json={"title": "b"}).status_code == 404
+
+
+def test_empty_patch_rejected(client):
+    t = _make(client)
+    assert client.patch(f"/api/tasks/{t['id']}", json={}).status_code == 422
+
+
+def test_delete_removes_task_and_persists(tmp_path, monkeypatch):
+    monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "t.db"))
+    with TestClient(app) as c:
+        a, b = _make(c, "a"), _make(c, "b")
+        assert c.delete(f"/api/tasks/{a['id']}").status_code == 204
+    with TestClient(app) as c:
+        assert [t["title"] for t in c.get("/api/tasks").json()] == ["b"]
+
+
+def test_delete_unknown_id_404(client):
+    t = _make(client)
+    assert client.delete(f"/api/tasks/{t['id']}").status_code == 204
+    assert client.delete(f"/api/tasks/{t['id']}").status_code == 404

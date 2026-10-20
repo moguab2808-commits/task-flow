@@ -14,6 +14,7 @@ async function request<T>(url: string, init?: RequestInit): Promise<T> {
   if (!res.ok) {
     throw new ApiError(await errorMessage(res))
   }
+  if (res.status === 204) return undefined as T
   return (await res.json()) as T
 }
 
@@ -46,4 +47,16 @@ export function changeStatus(id: number, status: Status): Promise<Task> {
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ status }),
   })
+}
+
+export function updateContent(id: number, title: string, description: string): Promise<Task> {
+  return request<Task>(`${BASE}/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description }),
+  })
+}
+
+export function deleteTask(id: number): Promise<void> {
+  return request<void>(`${BASE}/${id}`, { method: 'DELETE' })
 }

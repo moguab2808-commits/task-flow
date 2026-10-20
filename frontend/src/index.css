@@ -71,3 +71,9 @@ main {
 .badge-DONE {
   background: #d4f1d4;
 }
+
+.task-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}

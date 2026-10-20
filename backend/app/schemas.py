@@ -32,3 +32,17 @@ class StatusChange(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
     status: Status
+
+
+class ContentChange(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+    description: str | None = None
+
+    @field_validator("title")
+    @classmethod
+    def title_not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("제목을 입력해 주세요.")
+        return v
