@@ -56,7 +56,7 @@ export function changeStatus(id: number, status: Status): Promise<Task> {
   return request<Task>(`${BASE}/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ status }),
+    body: JSON.stringify({ status, title: '', description: '' }),
   })
 }
 
