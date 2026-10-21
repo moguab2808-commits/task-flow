@@ -61,7 +61,6 @@ function App() {
   }
 
   async function handleChangeStatus(id: number, status: Status) {
-    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)))
     const updated = await guard(() => changeStatus(id, status))
     if (updated) setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
   }
