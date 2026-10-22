@@ -19,6 +19,60 @@ class TaskCreate(BaseModel):
         return v
 
 
+class SignupIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    username: str
+    password: str
+
+    @field_validator("username")
+    @classmethod
+    def username_valid(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not v:
+            raise ValueError("사용자 이름을 입력해 주세요.")
+        if len(v) > 50:
+            raise ValueError("사용자 이름은 50자 이하로 입력해 주세요.")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_valid(cls, v: str) -> str:
+        if not v:
+            raise ValueError("비밀번호를 입력해 주세요.")
+        if len(v) < 8:
+            raise ValueError("비밀번호는 8자 이상이어야 합니다.")
+        if len(v) > 128:
+            raise ValueError("비밀번호는 128자 이하로 입력해 주세요.")
+        return v
+
+
+class LoginIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    username: str
+    password: str
+
+    @field_validator("username")
+    @classmethod
+    def username_present(cls, v: str) -> str:
+        v = v.strip().lower()
+        if not v:
+            raise ValueError("사용자 이름을 입력해 주세요.")
+        return v
+
+    @field_validator("password")
+    @classmethod
+    def password_present(cls, v: str) -> str:
+        if not v:
+            raise ValueError("비밀번호를 입력해 주세요.")
+        return v
+
+
+class UserOut(BaseModel):
+    username: str
+
+
 class TaskOut(BaseModel):
     id: int
     title: str
