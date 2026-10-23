@@ -4,10 +4,17 @@ from fastapi.testclient import TestClient
 from app.main import app
 
 
+def _auth(c, name="tester"):
+    # 서버를 다시 켠 테스트에서도 쓸 수 있게, 이미 가입했으면(409) 로그인만 한다.
+    c.post("/api/auth/signup", json={"username": name, "password": "password-1"})
+    assert c.post("/api/auth/login", json={"username": name, "password": "password-1"}).status_code == 200
+
+
 @pytest.fixture
 def client(tmp_path, monkeypatch):
     monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "t.db"))
     with TestClient(app) as c:
+        _auth(c)
         yield c
 
 
@@ -46,8 +53,10 @@ def test_list_in_creation_order(client):
 def test_persists_after_restart(tmp_path, monkeypatch):
     monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "t.db"))
     with TestClient(app) as c:
+        _auth(c)
         c.post("/api/tasks", json={"title": "keep"})
     with TestClient(app) as c:
+        _auth(c)
         assert [t["title"] for t in c.get("/api/tasks").json()] == ["keep"]
 
 
@@ -80,9 +89,11 @@ def test_change_status_only_affects_target(client):
 def test_status_persists_after_restart(tmp_path, monkeypatch):
     monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "t.db"))
     with TestClient(app) as c:
+        _auth(c)
         t = c.post("/api/tasks", json={"title": "a"}).json()
         c.patch(f"/api/tasks/{t['id']}", json={"status": "IN_PROGRESS"})
     with TestClient(app) as c:
+        _auth(c)
         assert c.get("/api/tasks").json()[0]["status"] == "IN_PROGRESS"
 
 
@@ -137,9 +148,11 @@ def test_empty_patch_rejected(client):
 def test_delete_removes_task_and_persists(tmp_path, monkeypatch):
     monkeypatch.setenv("TASKFLOW_DB", str(tmp_path / "t.db"))
     with TestClient(app) as c:
+        _auth(c)
         a, b = _make(c, "a"), _make(c, "b")
         assert c.delete(f"/api/tasks/{a['id']}").status_code == 204
     with TestClient(app) as c:
+        _auth(c)
         assert [t["title"] for t in c.get("/api/tasks").json()] == ["b"]
 
 

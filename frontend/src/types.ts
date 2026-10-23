@@ -9,6 +9,10 @@ export interface Task {
   updated_at: string
 }
 
+export interface User {
+  username: string
+}
+
 export const STATUS_LABEL: Record<Status, string> = {
   TODO: '할 일',
   IN_PROGRESS: '진행 중',
