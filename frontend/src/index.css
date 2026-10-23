@@ -30,6 +30,38 @@ main {
   margin: 0;
 }
 
+.auth-form h2 {
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.auth-info {
+  color: #1b5e20;
+  margin: 0;
+}
+
+.link-button {
+  background: none;
+  border: none;
+  padding: 0;
+  color: #1a56db;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.app-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.user-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
 .task-list {
   list-style: none;
   padding: 0;
