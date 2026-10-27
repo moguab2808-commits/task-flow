@@ -1,12 +1,19 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import type { Status, Task } from '../types'
-import { STATUS_LABEL } from '../types'
+import type { Priority, Status, Task } from '../types'
+import { PRIORITY_LABEL, STATUS_LABEL } from '../types'
+import PriorityDueFields from './PriorityDueFields'
 
 interface Props {
   task: Task
   onChangeStatus: (id: number, status: Status) => Promise<void>
-  onEdit: (id: number, title: string, description: string) => Promise<void>
+  onEdit: (
+    id: number,
+    title: string,
+    description: string,
+    priority: Priority,
+    dueDate: string | null,
+  ) => Promise<void>
   onDelete: (id: number) => Promise<void>
 }
 
@@ -18,6 +25,8 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
   const [editing, setEditing] = useState(false)
   const [title, setTitle] = useState(task.title)
   const [description, setDescription] = useState(task.description)
+  const [priority, setPriority] = useState<Priority>(task.priority)
+  const [dueDate, setDueDate] = useState(task.due_date ?? '')
 
   async function run(action: () => Promise<void>, fallback: string): Promise<boolean> {
     setError(null)
@@ -36,6 +45,8 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
   function startEdit() {
     setTitle(task.title)
     setDescription(task.description)
+    setPriority(task.priority)
+    setDueDate(task.due_date ?? '')
     setError(null)
     setEditing(true)
   }
@@ -46,7 +57,10 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
       setError('제목을 입력해 주세요.')
       return
     }
-    if (await run(() => onEdit(task.id, title, description), '저장하지 못했습니다.')) {
+    if (await run(
+        () => onEdit(task.id, title, description, priority, dueDate || null),
+        '저장하지 못했습니다.',
+      )) {
       setEditing(false)
     }
   }
@@ -67,6 +81,13 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
             aria-label="설명"
             rows={2}
           />
+          <PriorityDueFields
+            priority={priority}
+            dueDate={dueDate}
+            disabled={busy}
+            onPriorityChange={setPriority}
+            onDueDateChange={setDueDate}
+          />
           {error && <p className="error" role="alert">{error}</p>}
           <div className="task-actions">
             <button type="submit" disabled={busy}>저장</button>
@@ -78,7 +99,7 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
   }
 
   return (
-    <li className="task-card">
+    <li className={task.is_overdue ? 'task-card task-card-overdue' : 'task-card'}>
       <div className="task-head">
         <strong>{task.title}</strong>
         <select
@@ -95,6 +116,13 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
           ))}
         </select>
       </div>
+      <p className="task-meta">
+        <span className={`badge badge-priority-${task.priority}`}>
+          우선순위 {PRIORITY_LABEL[task.priority]}
+        </span>
+        {task.due_date && <span>마감 {task.due_date}</span>}
+        {task.is_overdue && <span className="badge badge-overdue">기한 초과</span>}
+      </p>
       {task.description && <p className="task-desc">{task.description}</p>}
       {error && <p className="error" role="alert">{error}</p>}
       <div className="task-actions">

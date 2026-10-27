@@ -1,4 +1,4 @@
-import type { Status, Task, User } from './types'
+import type { Priority, Status, Task, User } from './types'
 
 const API = 'http://localhost:8000/api'
 const BASE = `${API}/tasks`
@@ -74,11 +74,16 @@ export function listTasks(): Promise<Task[]> {
   return request<Task[]>(BASE)
 }
 
-export function createTask(title: string, description: string): Promise<Task> {
+export function createTask(
+  title: string,
+  description: string,
+  priority: Priority,
+  dueDate: string | null,
+): Promise<Task> {
   return request<Task>(BASE, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify({ title, description, priority, due_date: dueDate }),
   })
 }
 
@@ -90,11 +95,18 @@ export function changeStatus(id: number, status: Status): Promise<Task> {
   })
 }
 
-export function updateContent(id: number, title: string, description: string): Promise<Task> {
+// dueDate 가 null 이면 마감일을 지운다.
+export function updateContent(
+  id: number,
+  title: string,
+  description: string,
+  priority: Priority,
+  dueDate: string | null,
+): Promise<Task> {
   return request<Task>(`${BASE}/${id}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify({ title, description, priority, due_date: dueDate }),
   })
 }
 
