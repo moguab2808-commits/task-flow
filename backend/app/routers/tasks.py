@@ -20,7 +20,9 @@ def list_tasks(user: dict = Depends(get_current_user)):
 
 @router.post("", response_model=TaskOut, status_code=201)
 def create_task(body: TaskCreate, user: dict = Depends(get_current_user)):
-    return repository.create_task(user["id"], body.title, body.description)
+    return repository.create_task(
+        user["id"], body.title, body.description, body.priority, body.due_date
+    )
 
 
 @router.patch("/{task_id}", response_model=TaskOut)
@@ -41,7 +43,13 @@ def patch_task(
         task = repository.update_status(user["id"], task_id, parsed.status)
     else:
         task = repository.update_content(
-            user["id"], task_id, parsed.title, parsed.description
+            user["id"],
+            task_id,
+            parsed.title,
+            parsed.description,
+            parsed.priority,
+            # 보내지 않은 due_date 는 그대로 두고, null 이면 지운다.
+            parsed.due_date if "due_date" in parsed.model_fields_set else repository.UNSET,
         )
     if task is None:
         raise HTTPException(status_code=404, detail=NOT_FOUND)

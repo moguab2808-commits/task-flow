@@ -26,7 +26,9 @@ CREATE TABLE tasks (
     status TEXT NOT NULL DEFAULT 'TODO',
     created_at TEXT NOT NULL,
     updated_at TEXT NOT NULL,
-    owner_id INTEGER REFERENCES users(id)
+    owner_id INTEGER REFERENCES users(id),
+    priority TEXT NOT NULL DEFAULT 'NORMAL' CHECK (priority IN ('LOW', 'NORMAL', 'HIGH')),
+    due_date TEXT
 );
 """
 
@@ -55,7 +57,7 @@ def init_db() -> None:
         if not task_columns:
             with conn:
                 conn.executescript(SCHEMA)
-        elif "owner_id" not in task_columns:
+        elif "owner_id" not in task_columns or "priority" not in task_columns:
             raise RuntimeError(
                 "DB 가 아직 마이그레이션되지 않았습니다. "
                 "백업 후 'alembic upgrade head' 를 먼저 실행해 주세요."

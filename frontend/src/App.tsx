@@ -16,7 +16,7 @@ import StatusMessage from './components/StatusMessage'
 import TaskCard from './components/TaskCard'
 import TaskForm from './components/TaskForm'
 import { STATUS_LABEL } from './types'
-import type { Status, Task, User } from './types'
+import type { Priority, Status, Task, User } from './types'
 
 type LoadState = 'loading' | 'ready' | 'error'
 // checking: 로그인 여부를 아직 모른다 / out: 로그인 화면 / in: 보드
@@ -134,25 +134,56 @@ function App() {
     }
   }
 
-  async function handleCreate(title: string, description: string) {
-    setNotice(null)
+  // 서버가 정한 정렬 순서를 다시 받아 온다. 화면은 따로 정렬하지 않는다.
+  // 변경은 이미 저장되었으므로, 실패해도 저장 실패로 보이지 않게 안내만 남긴다.
+  async function refreshOrder() {
     try {
-      const created = await createTask(title, description)
-      setTasks((prev) => [...prev, created])
+      setTasks(await listTasks())
+    } catch (err) {
+      if (!handleUnauthorized(err)) {
+        setNotice('저장했지만 목록을 다시 불러오지 못했습니다. 순서가 최신이 아닐 수 있습니다.')
+      }
+    }
+  }
+
+  async function handleCreate(
+    title: string,
+    description: string,
+    priority: Priority,
+    dueDate: string | null,
+  ) {
+    setNotice(null)
+    let created: Task
+    try {
+      created = await createTask(title, description, priority, dueDate)
     } catch (err) {
       handleUnauthorized(err)
       throw err
     }
+    setTasks((prev) => [...prev, created])
+    await refreshOrder()
   }
 
   async function handleChangeStatus(id: number, status: Status) {
     const updated = await guard(() => changeStatus(id, status))
-    if (updated) setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+    if (updated) {
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+      await refreshOrder()
+    }
   }
 
-  async function handleEdit(id: number, title: string, description: string) {
-    const updated = await guard(() => updateContent(id, title, description))
-    if (updated) setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+  async function handleEdit(
+    id: number,
+    title: string,
+    description: string,
+    priority: Priority,
+    dueDate: string | null,
+  ) {
+    const updated = await guard(() => updateContent(id, title, description, priority, dueDate))
+    if (updated) {
+      setTasks((prev) => prev.map((t) => (t.id === id ? updated : t)))
+      await refreshOrder()
+    }
   }
 
   async function handleDelete(id: number) {

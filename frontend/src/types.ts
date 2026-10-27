@@ -1,4 +1,5 @@
 export type Status = 'TODO' | 'IN_PROGRESS' | 'DONE'
+export type Priority = 'LOW' | 'NORMAL' | 'HIGH'
 
 export interface Task {
   id: number
@@ -7,6 +8,11 @@ export interface Task {
   status: Status
   created_at: string
   updated_at: string
+  priority: Priority
+  // YYYY-MM-DD. 마감일이 없으면 null
+  due_date: string | null
+  // 서버가 목록을 줄 때 계산한다. 화면이 따로 계산하지 않는다.
+  is_overdue: boolean
 }
 
 export interface User {
@@ -17,4 +23,10 @@ export const STATUS_LABEL: Record<Status, string> = {
   TODO: '할 일',
   IN_PROGRESS: '진행 중',
   DONE: '완료',
+}
+
+export const PRIORITY_LABEL: Record<Priority, string> = {
+  LOW: '낮음',
+  NORMAL: '보통',
+  HIGH: '높음',
 }
