@@ -30,3 +30,10 @@ export const PRIORITY_LABEL: Record<Priority, string> = {
   NORMAL: '보통',
   HIGH: '높음',
 }
+
+export interface Suggestion {
+  priority: Priority
+  // YYYY-MM-DD. 제안할 마감일이 없으면 null
+  due_date: string | null
+  reason: string
+}
