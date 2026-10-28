@@ -204,3 +204,20 @@ main {
   background: #b00020;
   color: #fff;
 }
+
+.ai-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.5rem;
+}
+
+.ai-row textarea {
+  flex: 1;
+}
+
+.ai-status,
+.ai-reason {
+  margin: 0;
+  font-size: 0.9rem;
+  color: #555;
+}

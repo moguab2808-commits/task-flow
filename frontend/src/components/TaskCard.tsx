@@ -1,7 +1,9 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
-import type { Priority, Status, Task } from '../types'
+import { useAiSuggest } from '../hooks/useAiSuggest'
+import type { Priority, Status, Suggestion, Task } from '../types'
 import { PRIORITY_LABEL, STATUS_LABEL } from '../types'
+import { AiSuggestButton, AiSuggestReason, AiSuggestStatus } from './AiSuggestControls'
 import PriorityDueFields from './PriorityDueFields'
 
 interface Props {
@@ -27,6 +29,10 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
   const [description, setDescription] = useState(task.description)
   const [priority, setPriority] = useState<Priority>(task.priority)
   const [dueDate, setDueDate] = useState(task.due_date ?? '')
+  const ai = useAiSuggest((s: Suggestion) => {
+    setPriority(s.priority)
+    setDueDate(s.due_date ?? '')
+  })
 
   async function run(action: () => Promise<void>, fallback: string): Promise<boolean> {
     setError(null)
@@ -48,7 +54,13 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
     setPriority(task.priority)
     setDueDate(task.due_date ?? '')
     setError(null)
+    ai.reset()
     setEditing(true)
+  }
+
+  function cancelEdit() {
+    ai.reset()
+    setEditing(false)
   }
 
   async function save(e: FormEvent) {
@@ -61,6 +73,7 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
         () => onEdit(task.id, title, description, priority, dueDate || null),
         '저장하지 못했습니다.',
       )) {
+      ai.reset()
       setEditing(false)
     }
   }
@@ -75,12 +88,16 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
       <li className="task-card">
         <form className="task-form" onSubmit={save}>
           <input value={title} onChange={(e) => setTitle(e.target.value)} aria-label="제목" />
-          <textarea
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            aria-label="설명"
-            rows={2}
-          />
+          <div className="ai-row">
+            <textarea
+              value={description}
+              onChange={(e) => setDescription(e.target.value)}
+              aria-label="설명"
+              rows={2}
+            />
+            <AiSuggestButton pending={ai.pending} onClick={() => ai.suggest(title, description)} />
+          </div>
+          <AiSuggestStatus pending={ai.pending} message={ai.message} />
           <PriorityDueFields
             priority={priority}
             dueDate={dueDate}
@@ -88,10 +105,11 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
             onPriorityChange={setPriority}
             onDueDateChange={setDueDate}
           />
+          <AiSuggestReason reason={ai.reason} />
           {error && <p className="error" role="alert">{error}</p>}
           <div className="task-actions">
             <button type="submit" disabled={busy}>저장</button>
-            <button type="button" disabled={busy} onClick={() => setEditing(false)}>취소</button>
+            <button type="button" disabled={busy} onClick={cancelEdit}>취소</button>
           </div>
         </form>
       </li>

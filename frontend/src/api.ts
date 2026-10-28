@@ -1,4 +1,4 @@
-import type { Priority, Status, Task, User } from './types'
+import type { Priority, Status, Suggestion, Task, User } from './types'
 
 const API = 'http://localhost:8000/api'
 const BASE = `${API}/tasks`
@@ -112,4 +112,13 @@ export function updateContent(
 
 export function deleteTask(id: number): Promise<void> {
   return request<void>(`${BASE}/${id}`, { method: 'DELETE' })
+}
+
+// 제안만 받는다. 서버는 저장하지 않으므로 저장은 사용자가 따로 한다.
+export function suggestTask(title: string, description: string): Promise<Suggestion> {
+  return request<Suggestion>(`${BASE}/suggest`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title, description }),
+  })
 }

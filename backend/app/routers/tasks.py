@@ -1,9 +1,16 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from pydantic import ValidationError
 
-from app import repository
+from app import repository, suggest
 from app.deps import get_current_user
-from app.schemas import ContentChange, StatusChange, TaskCreate, TaskOut
+from app.schemas import (
+    ContentChange,
+    StatusChange,
+    SuggestIn,
+    SuggestOut,
+    TaskCreate,
+    TaskOut,
+)
 
 # 라우터 전체가 로그인을 요구한다. 401 확인이 입력 검증 · 소유 확인보다 먼저다.
 router = APIRouter(
@@ -23,6 +30,15 @@ def create_task(body: TaskCreate, user: dict = Depends(get_current_user)):
     return repository.create_task(
         user["id"], body.title, body.description, body.priority, body.due_date
     )
+
+
+@router.post("/suggest", response_model=SuggestOut)
+def suggest_task(body: SuggestIn):
+    # 제안만 돌려준다. 저장하지 않고 DB 도 건드리지 않는다.
+    try:
+        return suggest.suggest(body.title, body.description)
+    except suggest.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail) from None
 
 
 @router.patch("/{task_id}", response_model=TaskOut)
