@@ -145,6 +145,30 @@ class SuggestOut(BaseModel):
     reason: str
 
 
+class SuggestOptionsIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    title: str
+
+    @field_validator("title")
+    @classmethod
+    def title_not_blank(cls, v: str) -> str:
+        if not v.strip():
+            raise ValueError("제목을 입력해 주세요.")
+        return v
+
+
+class OptionOut(BaseModel):
+    title: str
+    description: str
+    priority: Priority
+    due_date: str | None
+
+
+class SuggestOptionsOut(BaseModel):
+    items: list[OptionOut]
+
+
 class StatusChange(BaseModel):
     model_config = ConfigDict(extra="forbid")
 
