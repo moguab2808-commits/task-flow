@@ -6,7 +6,7 @@ export const MSG_TITLE_REQUIRED = '제목을 입력해 주세요.'
 export const MSG_UNAVAILABLE = '지금은 AI 제안을 쓸 수 없습니다. 직접 입력해 주세요.'
 export const MSG_FAILED = '제안을 못 받았습니다. 다시 제안 버튼을 눌러 보세요.'
 
-function failureMessage(err: unknown): string {
+export function failureMessage(err: unknown): string {
   if (err instanceof ApiError) {
     if (err.status === 503) return MSG_UNAVAILABLE
     if (err.status === 502) return MSG_FAILED

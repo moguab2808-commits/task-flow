@@ -1,8 +1,10 @@
 import { useState } from 'react'
 import type { FormEvent } from 'react'
+import { useAiOptions } from '../hooks/useAiOptions'
 import { useAiSuggest } from '../hooks/useAiSuggest'
-import type { Priority, Status, Suggestion, Task } from '../types'
+import type { Priority, Status, Suggestion, Task, TaskOption } from '../types'
 import { PRIORITY_LABEL, STATUS_LABEL } from '../types'
+import AiOptionsPanel from './AiOptionsPanel'
 import { AiSuggestButton, AiSuggestReason, AiSuggestStatus } from './AiSuggestControls'
 import PriorityDueFields from './PriorityDueFields'
 
@@ -33,6 +35,17 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
     setPriority(s.priority)
     setDueDate(s.due_date ?? '')
   })
+  const options = useAiOptions()
+  const aiBusy = ai.pending || options.pending
+
+  // 후보 하나를 고르면 칸만 채운다. 제목은 그대로이고 저장은 [저장] 을 눌러야 한다.
+  function pick(item: TaskOption) {
+    setDescription(item.description)
+    setPriority(item.priority)
+    setDueDate(item.due_date ?? '')
+    options.reset()
+    ai.reset()
+  }
 
   async function run(action: () => Promise<void>, fallback: string): Promise<boolean> {
     setError(null)
@@ -55,11 +68,13 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
     setDueDate(task.due_date ?? '')
     setError(null)
     ai.reset()
+    options.reset()
     setEditing(true)
   }
 
   function cancelEdit() {
     ai.reset()
+    options.reset()
     setEditing(false)
   }
 
@@ -74,6 +89,7 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
         '저장하지 못했습니다.',
       )) {
       ai.reset()
+      options.reset()
       setEditing(false)
     }
   }
@@ -95,9 +111,22 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
               aria-label="설명"
               rows={2}
             />
-            <AiSuggestButton pending={ai.pending} onClick={() => ai.suggest(title, description)} />
+            <div className="ai-buttons">
+              <AiSuggestButton
+                pending={ai.pending}
+                disabled={options.pending}
+                onClick={() => ai.suggest(title, description)}
+              />
+              <AiSuggestButton
+                label="AI 로 할 일 만들기"
+                pending={options.pending}
+                disabled={ai.pending}
+                onClick={() => options.generate(title)}
+              />
+            </div>
           </div>
-          <AiSuggestStatus pending={ai.pending} message={ai.message} />
+          <AiSuggestStatus pending={aiBusy} message={ai.message ?? options.message} />
+          <AiOptionsPanel items={options.items} disabled={busy} onPick={pick} onCancel={options.reset} />
           <PriorityDueFields
             priority={priority}
             dueDate={dueDate}

@@ -221,3 +221,82 @@ main {
   font-size: 0.9rem;
   color: #555;
 }
+
+.ai-options {
+  border: 1px solid #f0a070;
+  background: #fff7f1;
+  border-radius: 8px;
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.ai-options h3 {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.ai-options-hint {
+  margin: 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.ai-options ul {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.ai-option {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 0.15rem;
+  width: 100%;
+  text-align: left;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid #f0d8c8;
+  border-radius: 0;
+  padding: 0.4rem 0.25rem;
+  font: inherit;
+  cursor: pointer;
+}
+
+.ai-option:hover:not(:disabled) {
+  background: #ffeee0;
+}
+
+.ai-option-top {
+  display: flex;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.ai-option-meta {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+  white-space: nowrap;
+}
+
+.ai-option-desc {
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.ai-options-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.ai-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}

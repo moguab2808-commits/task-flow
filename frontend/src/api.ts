@@ -1,4 +1,4 @@
-import type { Priority, Status, Suggestion, Task, User } from './types'
+import type { Priority, Status, Suggestion, Task, TaskOption, User } from './types'
 
 const API = 'http://localhost:8000/api'
 const BASE = `${API}/tasks`
@@ -121,4 +121,14 @@ export function suggestTask(title: string, description: string): Promise<Suggest
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ title, description }),
   })
+}
+
+// 주제(제목) 한 줄로 할 일 후보 3~5개를 받는다. 서버는 저장하지 않는다.
+export async function suggestOptions(title: string): Promise<TaskOption[]> {
+  const res = await request<{ items: TaskOption[] }>(`${BASE}/suggest-options`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ title }),
+  })
+  return res.items
 }
