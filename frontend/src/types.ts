@@ -37,3 +37,12 @@ export interface Suggestion {
   due_date: string | null
   reason: string
 }
+
+// AI 가 만든 할 일 후보. 저장 전의 값이다.
+export interface TaskOption {
+  title: string
+  description: string
+  priority: Priority
+  // YYYY-MM-DD. 없으면 null
+  due_date: string | null
+}

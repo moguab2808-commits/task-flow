@@ -1,13 +1,15 @@
 interface ButtonProps {
   pending: boolean
   onClick: () => void
+  label?: string
+  disabled?: boolean
 }
 
 // 기다리는 동안 이 버튼만 잠근다. 저장 버튼과 입력 칸은 그대로 쓸 수 있다.
-export function AiSuggestButton({ pending, onClick }: ButtonProps) {
+export function AiSuggestButton({ pending, onClick, label = 'AI 제안', disabled }: ButtonProps) {
   return (
-    <button type="button" className="ai-button" disabled={pending} onClick={onClick}>
-      AI 제안
+    <button type="button" className="ai-button" disabled={pending || disabled} onClick={onClick}>
+      {label}
     </button>
   )
 }

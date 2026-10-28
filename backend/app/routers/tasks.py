@@ -7,6 +7,8 @@ from app.schemas import (
     ContentChange,
     StatusChange,
     SuggestIn,
+    SuggestOptionsIn,
+    SuggestOptionsOut,
     SuggestOut,
     TaskCreate,
     TaskOut,
@@ -37,6 +39,15 @@ def suggest_task(body: SuggestIn):
     # 제안만 돌려준다. 저장하지 않고 DB 도 건드리지 않는다.
     try:
         return suggest.suggest(body.title, body.description)
+    except suggest.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail) from None
+
+
+@router.post("/suggest-options", response_model=SuggestOptionsOut)
+def suggest_task_options(body: SuggestOptionsIn):
+    # 후보만 돌려준다. 저장하지 않고 DB 도 건드리지 않는다.
+    try:
+        return suggest.suggest_options(body.title)
     except suggest.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail) from None
 
