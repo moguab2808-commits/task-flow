@@ -4,8 +4,14 @@ body {
 }
 
 main {
-  max-width: 40rem;
+  max-width: 72rem;
   margin: 0 auto;
+}
+
+/* 보드만 넓게 쓰고, 입력 폼과 안내는 예전 폭을 유지한다. */
+.task-form,
+.status-message {
+  max-width: 40rem;
 }
 
 .task-form {
@@ -136,9 +142,17 @@ main {
 }
 
 .sections {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.5rem;
+  align-items: start;
+}
+
+/* 좁은 화면에서는 세 칸이 너무 좁아지므로 다시 세로로 쌓는다. */
+@media (max-width: 52rem) {
+  .sections {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .section h2 {
