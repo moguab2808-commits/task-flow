@@ -53,3 +53,9 @@ export interface Briefing {
   later: number[]
   cheer: string
 }
+
+// 이번 주 계획. 서버가 보낸 적 있는 id 만 담아 준다. 요일 · 제목은 화면이 만든다.
+export interface Weekplan {
+  days: { date: string; ids: number[] }[]
+  note: string
+}
