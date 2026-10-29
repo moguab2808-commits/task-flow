@@ -6,6 +6,7 @@ from app.db import connect
 UNSET = object()
 
 _PRIORITY_RANK = {"HIGH": 0, "NORMAL": 1, "LOW": 2}
+_STATUSES = ("TODO", "IN_PROGRESS", "DONE")
 
 
 def _now() -> str:
@@ -20,7 +21,13 @@ def _today() -> date:
 def _is_overdue(row: dict, today: date) -> bool:
     """마감일이 있고, 오늘보다 이전이고, 완료가 아니면 기한 초과다. 당일은 아니다 (BR-3)."""
     due = row["due_date"]
-    return due is not None and date.fromisoformat(due) < today and row["status"] != "DONE"
+    if due is None or row["status"] == "DONE":
+        return False
+    try:
+        return date.fromisoformat(due) < today
+    except ValueError:
+        # DB 에 날짜가 아닌 값이 들어 있어도 읽기는 계속한다. 읽을 수 없는 마감일은 기한 초과로 보지 않는다.
+        return False
 
 
 def _out(row, today: date) -> dict:
@@ -39,7 +46,8 @@ def list_tasks(owner_id: int) -> list[dict]:
             "SELECT * FROM tasks WHERE owner_id = ? ORDER BY id ASC", (owner_id,)
         ).fetchall()
         today = _today()
-        tasks = [_out(r, today) for r in rows]
+        # 상태가 세 값 밖인 행(손으로 고친 DB 등)은 응답 모양을 만들 수 없어 목록에서 뺀다. 데이터는 건드리지 않는다.
+        tasks = [_out(r, today) for r in rows if r["status"] in _STATUSES]
         # 기한 초과 → 우선순위(HIGH 먼저) → 가까운 마감일(없으면 뒤) → 만든 순서(ID) (BR-4)
         tasks.sort(
             key=lambda t: (
