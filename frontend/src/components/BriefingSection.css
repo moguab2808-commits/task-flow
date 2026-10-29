@@ -1,0 +1,64 @@
+.briefing {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+.briefing-message {
+  overflow-wrap: anywhere;
+}
+
+/* 보드 폭을 넘지 않고, 좁은 화면에서는 칸 폭을 꽉 채운다. */
+.briefing-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 40rem;
+  border: 1px solid #9db7e8;
+  background: #f3f7ff;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.briefing-card h3 {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.briefing-top,
+.briefing-later {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.briefing-top li {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.briefing-top li > span:last-child,
+.briefing-later li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.briefing-num {
+  flex-shrink: 0;
+}
+
+.briefing-cheer {
+  margin: 0.25rem 0 0;
+  color: #1b3a7a;
+  overflow-wrap: anywhere;
+}

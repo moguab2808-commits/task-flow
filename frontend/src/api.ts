@@ -1,4 +1,4 @@
-import type { Priority, Status, Suggestion, Task, TaskOption, User } from './types'
+import type { Briefing, Priority, Status, Suggestion, Task, TaskOption, User } from './types'
 
 const API = 'http://localhost:8000/api'
 const BASE = `${API}/tasks`
@@ -131,4 +131,9 @@ export async function suggestOptions(title: string): Promise<TaskOption[]> {
     body: JSON.stringify({ title }),
   })
   return res.items
+}
+
+// 끝나지 않은 할 일은 서버가 DB 에서 모은다. 본문은 없고 저장도 하지 않는다.
+export function getBriefing(): Promise<Briefing> {
+  return request<Briefing>(`${BASE}/briefing`, { method: 'POST' })
 }

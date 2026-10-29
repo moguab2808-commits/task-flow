@@ -12,6 +12,7 @@ import {
   updateContent,
 } from './api'
 import AuthForm from './components/AuthForm'
+import BriefingSection from './components/BriefingSection'
 import StatusMessage from './components/StatusMessage'
 import TaskCard from './components/TaskCard'
 import TaskForm from './components/TaskForm'
@@ -223,6 +224,7 @@ function App() {
         </div>
       </header>
       <TaskForm onCreate={handleCreate} />
+      <BriefingSection tasks={tasks} onUnauthorized={handleUnauthorized} />
       {notice && <StatusMessage kind="notice" message={notice} />}
       {loadState === 'loading' && <StatusMessage kind="loading" message="불러오는 중입니다…" />}
       {loadState === 'error' && (

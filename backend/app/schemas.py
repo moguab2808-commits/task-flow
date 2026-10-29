@@ -201,3 +201,14 @@ class ContentChange(BaseModel):
     @classmethod
     def due_date_valid(cls, v: object) -> str | None:
         return check_due_date(v)
+
+
+class BriefingPick(BaseModel):
+    id: int
+    reason: str
+
+
+class BriefingOut(BaseModel):
+    top3: list[BriefingPick]
+    later: list[int]
+    cheer: str
