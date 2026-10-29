@@ -16,7 +16,6 @@ import BriefingSection from './components/BriefingSection'
 import StatusMessage from './components/StatusMessage'
 import TaskCard from './components/TaskCard'
 import TaskForm from './components/TaskForm'
-import WeekplanSection from './components/WeekplanSection'
 import { STATUS_LABEL } from './types'
 import type { Priority, Status, Task, User } from './types'
 
@@ -226,7 +225,6 @@ function App() {
       </header>
       <TaskForm onCreate={handleCreate} />
       <BriefingSection tasks={tasks} onUnauthorized={handleUnauthorized} />
-      <WeekplanSection tasks={tasks} onUnauthorized={handleUnauthorized} />
       {notice && <StatusMessage kind="notice" message={notice} />}
       {loadState === 'loading' && <StatusMessage kind="loading" message="불러오는 중입니다…" />}
       {loadState === 'error' && (
