@@ -1,9 +1,10 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from pydantic import ValidationError
 
-from app import repository, suggest
+from app import briefing, repository, suggest
 from app.deps import get_current_user
 from app.schemas import (
+    BriefingOut,
     ContentChange,
     StatusChange,
     SuggestIn,
@@ -48,6 +49,15 @@ def suggest_task_options(body: SuggestOptionsIn):
     # 후보만 돌려준다. 저장하지 않고 DB 도 건드리지 않는다.
     try:
         return suggest.suggest_options(body.title)
+    except suggest.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail) from None
+
+
+@router.post("/briefing", response_model=BriefingOut)
+def briefing_today(user: dict = Depends(get_current_user)):
+    # 브리핑만 돌려준다. 저장하지 않고 DB 도 바꾸지 않는다.
+    try:
+        return briefing.briefing(user["id"])
     except suggest.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail) from None
 

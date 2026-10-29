@@ -46,3 +46,10 @@ export interface TaskOption {
   // YYYY-MM-DD. 없으면 null
   due_date: string | null
 }
+
+// 오늘 브리핑. 서버가 보낸 적 있는 id 만 담아 준다. 제목은 보드 목록에서 id 로 찾는다.
+export interface Briefing {
+  top3: { id: number; reason: string }[]
+  later: number[]
+  cheer: string
+}
