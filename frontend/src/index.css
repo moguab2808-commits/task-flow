@@ -1,6 +1,7 @@
 body {
   font-family: system-ui, 'Segoe UI', sans-serif;
-  margin: 2rem;
+  /* 좁은 화면에서는 여백을 줄여 내용이 쓸 폭을 지킨다. */
+  margin: clamp(1rem, 4vw, 2rem);
 }
 
 main {
@@ -57,15 +58,19 @@ main {
 
 .app-header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   align-items: center;
-  gap: 1rem;
+  gap: 0 1rem;
 }
 
 .user-bar {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   gap: 0.5rem;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .task-list {
@@ -89,9 +94,20 @@ main {
   gap: 1rem;
 }
 
+/* 띄어쓰기 없는 긴 제목도 칸 안에서 줄바꿈하고, 상태 선택은 밀려나지 않게 한다. */
+.task-head strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.task-head select {
+  flex-shrink: 0;
+}
+
 .task-desc {
   margin: 0.5rem 0 0;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   color: #444;
 }
 
@@ -148,7 +164,14 @@ main {
   align-items: start;
 }
 
-/* 좁은 화면에서는 세 칸이 너무 좁아지므로 다시 세로로 쌓는다. */
+/* 중간 폭에서는 세 칸이 너무 좁아(칸당 약 240px) 수정 폼이 답답하므로 두 칸으로 줄인다. */
+@media (max-width: 70rem) {
+  .sections {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+/* 좁은 화면에서는 두 칸도 좁아지므로 다시 세로로 쌓는다. 위 규칙보다 뒤에 두어 이긴다. */
 @media (max-width: 52rem) {
   .sections {
     grid-template-columns: minmax(0, 1fr);
@@ -219,14 +242,17 @@ main {
   color: #fff;
 }
 
+/* 입력칸이 12rem 아래로 줄어들 폭이면 버튼이 아래로 내려간다. 화면 폭이 아니라 칸 폭을 따른다. */
 .ai-row {
   display: flex;
+  flex-wrap: wrap;
   align-items: flex-start;
   gap: 0.5rem;
 }
 
 .ai-row textarea {
-  flex: 1;
+  flex: 1 1 12rem;
+  min-width: 0;
 }
 
 .ai-status,
@@ -287,18 +313,25 @@ main {
 
 .ai-option-top {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
-  gap: 0.5rem;
+  gap: 0.25rem 0.5rem;
+}
+
+.ai-option-top strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .ai-option-meta {
   display: flex;
-  gap: 0.4rem;
+  flex-wrap: wrap;
+  gap: 0.25rem 0.4rem;
   align-items: center;
-  white-space: nowrap;
 }
 
 .ai-option-desc {
+  overflow-wrap: anywhere;
   font-size: 0.85rem;
   color: #555;
 }
