@@ -212,3 +212,13 @@ class BriefingOut(BaseModel):
     top3: list[BriefingPick]
     later: list[int]
     cheer: str
+
+
+class WeekDay(BaseModel):
+    date: str
+    ids: list[int]
+
+
+class WeekplanOut(BaseModel):
+    days: list[WeekDay]
+    note: str

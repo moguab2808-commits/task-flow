@@ -1,7 +1,7 @@
 from fastapi import APIRouter, Body, Depends, HTTPException, Response
 from pydantic import ValidationError
 
-from app import briefing, repository, suggest
+from app import briefing, repository, suggest, weekplan
 from app.deps import get_current_user
 from app.schemas import (
     BriefingOut,
@@ -13,6 +13,7 @@ from app.schemas import (
     SuggestOut,
     TaskCreate,
     TaskOut,
+    WeekplanOut,
 )
 
 # 라우터 전체가 로그인을 요구한다. 401 확인이 입력 검증 · 소유 확인보다 먼저다.
@@ -58,6 +59,15 @@ def briefing_today(user: dict = Depends(get_current_user)):
     # 브리핑만 돌려준다. 저장하지 않고 DB 도 바꾸지 않는다.
     try:
         return briefing.briefing(user["id"])
+    except suggest.SuggestError as e:
+        raise HTTPException(status_code=e.status_code, detail=e.detail) from None
+
+
+@router.post("/weekplan", response_model=WeekplanOut)
+def weekplan_week(user: dict = Depends(get_current_user)):
+    # 계획만 돌려준다. 저장하지 않고 DB 도 바꾸지 않는다.
+    try:
+        return weekplan.weekplan(user["id"])
     except suggest.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail) from None
 
