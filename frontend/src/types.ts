@@ -53,3 +53,25 @@ export interface Briefing {
   later: number[]
   cheer: string
 }
+
+// 이번 주 계획. 서버가 보낸 적 있는 id 만 담아 준다. 요일 · 제목은 화면이 만든다.
+export interface Weekplan {
+  days: { date: string; ids: number[] }[]
+  note: string
+}
+
+// 한 문장으로 시키기의 동작 하나. 해당 없는 값은 null. add 는 id 가 null 이고 priority 가 항상 있다.
+export interface CommandAction {
+  kind: 'add' | 'due' | 'done'
+  id: number | null
+  title: string | null
+  priority: Priority | null
+  // YYYY-MM-DD. 없으면 null
+  due_date: string | null
+}
+
+// 동작 제안. 동작이 하나도 없으면 ask 에 되묻는 한 문장이 있다. 서버는 저장하지 않는다.
+export interface CommandResult {
+  actions: CommandAction[]
+  ask: string | null
+}

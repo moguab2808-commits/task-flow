@@ -4,6 +4,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, field_validator
 
+from app.rules import check_command_text
+
 Status = Literal["TODO", "IN_PROGRESS", "DONE"]
 Priority = Literal["LOW", "NORMAL", "HIGH"]
 
@@ -212,3 +214,37 @@ class BriefingOut(BaseModel):
     top3: list[BriefingPick]
     later: list[int]
     cheer: str
+
+
+class WeekDay(BaseModel):
+    date: str
+    ids: list[int]
+
+
+class WeekplanOut(BaseModel):
+    days: list[WeekDay]
+    note: str
+
+
+class CommandIn(BaseModel):
+    model_config = ConfigDict(extra="forbid")
+
+    text: str
+
+    @field_validator("text")
+    @classmethod
+    def text_valid(cls, v: str) -> str:
+        return check_command_text(v)
+
+
+class CommandAction(BaseModel):
+    kind: Literal["add", "due", "done"]
+    id: int | None
+    title: str | None
+    priority: Priority | None
+    due_date: str | None
+
+
+class CommandOut(BaseModel):
+    actions: list[CommandAction]
+    ask: str | None

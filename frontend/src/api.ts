@@ -1,4 +1,14 @@
-import type { Briefing, Priority, Status, Suggestion, Task, TaskOption, User } from './types'
+import type {
+  Briefing,
+  CommandResult,
+  Priority,
+  Status,
+  Suggestion,
+  Task,
+  TaskOption,
+  User,
+  Weekplan,
+} from './types'
 
 const API = 'http://localhost:8000/api'
 const BASE = `${API}/tasks`
@@ -136,4 +146,18 @@ export async function suggestOptions(title: string): Promise<TaskOption[]> {
 // 끝나지 않은 할 일은 서버가 DB 에서 모은다. 본문은 없고 저장도 하지 않는다.
 export function getBriefing(): Promise<Briefing> {
   return request<Briefing>(`${BASE}/briefing`, { method: 'POST' })
+}
+
+// 끝나지 않은 할 일을 오늘부터 7일에 나눈 계획. 본문은 없고 저장도 하지 않는다.
+export function getWeekplan(): Promise<Weekplan> {
+  return request<Weekplan>(`${BASE}/weekplan`, { method: 'POST' })
+}
+
+// 한 문장을 동작 목록으로 바꾼 제안만 받는다. 서버는 저장하지 않으므로 적용은 화면이 따로 한다.
+export function sendCommand(text: string): Promise<CommandResult> {
+  return request<CommandResult>(`${BASE}/command`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ text }),
+  })
 }
