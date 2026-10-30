@@ -1,0 +1,75 @@
+.command {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+
+/* 보드 폭을 넘지 않고, 좁은 화면에서는 입력란이 줄어든다. */
+.command-form {
+  box-sizing: border-box;
+  display: flex;
+  gap: 0.5rem;
+  width: 100%;
+  max-width: 40rem;
+}
+
+.command-form input {
+  flex: 1;
+  min-width: 0;
+}
+
+.command-form button {
+  flex-shrink: 0;
+}
+
+.command-message,
+.command-ask {
+  margin: 0;
+  overflow-wrap: anywhere;
+}
+
+.command-ask {
+  color: #1b3a7a;
+}
+
+.command-card {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 40rem;
+  border: 1px solid #9db7e8;
+  background: #f3f7ff;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.4rem;
+}
+
+.command-card h3 {
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.command-lines {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  min-width: 0;
+  max-width: 100%;
+}
+
+.command-lines li {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.command-buttons {
+  display: flex;
+  gap: 0.5rem;
+}
