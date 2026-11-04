@@ -1,6 +1,6 @@
-import sqlite3
 from contextlib import asynccontextmanager
 
+import psycopg
 from fastapi import FastAPI, Request
 from fastapi.encoders import jsonable_encoder
 from fastapi.exceptions import RequestValidationError
@@ -40,8 +40,8 @@ def validation_error(_: Request, exc: RequestValidationError) -> JSONResponse:
     return JSONResponse(status_code=422, content=jsonable_encoder({"detail": detail}))
 
 
-@app.exception_handler(sqlite3.Error)
-def storage_error(_: Request, __: sqlite3.Error) -> JSONResponse:
+@app.exception_handler(psycopg.Error)
+def storage_error(_: Request, __: psycopg.Error) -> JSONResponse:
     # 저장소 쓰기·읽기 실패: 변경은 일어나지 않은 것으로 알린다.
     return JSONResponse(
         status_code=500,

@@ -1,5 +1,6 @@
-import sqlite3
 from datetime import datetime, timedelta, timezone
+
+from psycopg.errors import UniqueViolation
 
 from app.db import connect
 
@@ -21,19 +22,21 @@ def create_user(username: str, password_hash: str) -> bool:
     """
     conn = connect()
     try:
-        with conn:
+        with conn.transaction():
             adopted = conn.execute(
-                "UPDATE users SET password_hash = ? WHERE username = ? AND password_hash IS NULL",
+                "UPDATE users SET password_hash = %s WHERE username = %s AND password_hash IS NULL",
                 (password_hash, username),
             )
             if adopted.rowcount == 1:
                 return True
             try:
-                conn.execute(
-                    "INSERT INTO users (username, password_hash, created_at) VALUES (?, ?, ?)",
-                    (username, password_hash, _iso(now())),
-                )
-            except sqlite3.IntegrityError:
+                # 중복이면 이 savepoint 만 되돌리고 바깥 트랜잭션은 살려 둔다.
+                with conn.transaction():
+                    conn.execute(
+                        "INSERT INTO users (username, password_hash, created_at) VALUES (%s, %s, %s)",
+                        (username, password_hash, _iso(now())),
+                    )
+            except UniqueViolation:
                 return False
         return True
     finally:
@@ -43,7 +46,7 @@ def create_user(username: str, password_hash: str) -> bool:
 def find_user_by_username(username: str) -> dict | None:
     conn = connect()
     try:
-        row = conn.execute("SELECT * FROM users WHERE username = ?", (username,)).fetchone()
+        row = conn.execute("SELECT * FROM users WHERE username = %s", (username,)).fetchone()
         return dict(row) if row else None
     finally:
         conn.close()
@@ -54,11 +57,11 @@ def create_session(session_id: str, user_id: int) -> datetime:
     expires = created + SESSION_TTL
     conn = connect()
     try:
-        with conn:
+        with conn.transaction():
             # 만료된 세션 행은 로그인할 때 함께 지운다.
-            conn.execute("DELETE FROM sessions WHERE expires_at <= ?", (_iso(created),))
+            conn.execute("DELETE FROM sessions WHERE expires_at <= %s", (_iso(created),))
             conn.execute(
-                "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (?, ?, ?, ?)",
+                "INSERT INTO sessions (id, user_id, created_at, expires_at) VALUES (%s, %s, %s, %s)",
                 (session_id, user_id, _iso(created), _iso(expires)),
             )
         return expires
@@ -69,8 +72,8 @@ def create_session(session_id: str, user_id: int) -> datetime:
 def delete_session(session_id: str) -> None:
     conn = connect()
     try:
-        with conn:
-            conn.execute("DELETE FROM sessions WHERE id = ?", (session_id,))
+        with conn.transaction():
+            conn.execute("DELETE FROM sessions WHERE id = %s", (session_id,))
     finally:
         conn.close()
 
@@ -81,7 +84,7 @@ def find_user_by_session(session_id: str) -> dict | None:
     try:
         row = conn.execute(
             "SELECT u.id, u.username, s.expires_at FROM sessions s"
-            " JOIN users u ON u.id = s.user_id WHERE s.id = ?",
+            " JOIN users u ON u.id = s.user_id WHERE s.id = %s",
             (session_id,),
         ).fetchone()
         if row is None or datetime.fromisoformat(row["expires_at"]) <= now():
