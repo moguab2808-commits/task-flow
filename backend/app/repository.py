@@ -43,7 +43,7 @@ def list_tasks(owner_id: int) -> list[dict]:
     conn = connect()
     try:
         rows = conn.execute(
-            "SELECT * FROM tasks WHERE owner_id = ? ORDER BY id ASC", (owner_id,)
+            "SELECT * FROM tasks WHERE owner_id = %s ORDER BY id ASC", (owner_id,)
         ).fetchall()
         today = _today()
         # 상태가 세 값 밖인 행(손으로 고친 DB 등)은 응답 모양을 만들 수 없어 목록에서 뺀다. 데이터는 건드리지 않는다.
@@ -73,13 +73,13 @@ def create_task(
     now = _now()
     conn = connect()
     try:
-        with conn:
-            cur = conn.execute(
+        with conn.transaction():
+            row = conn.execute(
                 "INSERT INTO tasks (title, description, status, created_at, updated_at,"
-                " owner_id, priority, due_date) VALUES (?, ?, 'TODO', ?, ?, ?, ?, ?)",
+                " owner_id, priority, due_date) VALUES (%s, %s, 'TODO', %s, %s, %s, %s, %s)"
+                " RETURNING *",
                 (title, description, now, now, owner_id, priority, due_date),
-            )
-        row = conn.execute("SELECT * FROM tasks WHERE id = ?", (cur.lastrowid,)).fetchone()
+            ).fetchone()
         return _out(row, _today())
     finally:
         conn.close()
@@ -88,14 +88,14 @@ def create_task(
 def update_status(owner_id: int, task_id: int, status: str) -> dict | None:
     conn = connect()
     try:
-        with conn:
+        with conn.transaction():
             cur = conn.execute(
-                "UPDATE tasks SET status = ?, updated_at = ? WHERE id = ? AND owner_id = ?",
+                "UPDATE tasks SET status = %s, updated_at = %s WHERE id = %s AND owner_id = %s",
                 (status, _now(), task_id, owner_id),
             )
         if cur.rowcount == 0:
             return None
-        row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        row = conn.execute("SELECT * FROM tasks WHERE id = %s", (task_id,)).fetchone()
         return _out(row, _today())
     finally:
         conn.close()
@@ -112,12 +112,12 @@ def update_content(
     """priority None / due_date UNSET 은 그대로 둔다. due_date None 은 마감일을 지운다."""
     conn = connect()
     try:
-        with conn:
+        with conn.transaction():
             cur = conn.execute(
-                "UPDATE tasks SET title = ?, description = COALESCE(?, description),"
-                " priority = COALESCE(?, priority),"
-                " due_date = CASE WHEN ? THEN ? ELSE due_date END,"
-                " updated_at = ? WHERE id = ? AND owner_id = ?",
+                "UPDATE tasks SET title = %s, description = COALESCE(%s::text, description),"
+                " priority = COALESCE(%s::text, priority),"
+                " due_date = CASE WHEN %s::boolean THEN %s::text ELSE due_date END,"
+                " updated_at = %s WHERE id = %s AND owner_id = %s",
                 (
                     title,
                     description,
@@ -131,7 +131,7 @@ def update_content(
             )
         if cur.rowcount == 0:
             return None
-        row = conn.execute("SELECT * FROM tasks WHERE id = ?", (task_id,)).fetchone()
+        row = conn.execute("SELECT * FROM tasks WHERE id = %s", (task_id,)).fetchone()
         return _out(row, _today())
     finally:
         conn.close()
@@ -140,9 +140,9 @@ def update_content(
 def delete_task(owner_id: int, task_id: int) -> bool:
     conn = connect()
     try:
-        with conn:
+        with conn.transaction():
             cur = conn.execute(
-                "DELETE FROM tasks WHERE id = ? AND owner_id = ?", (task_id, owner_id)
+                "DELETE FROM tasks WHERE id = %s AND owner_id = %s", (task_id, owner_id)
             )
         return cur.rowcount > 0
     finally:

@@ -1,8 +1,9 @@
 import os
-import sqlite3
-from pathlib import Path
 
-DEFAULT_DB_PATH = Path(__file__).resolve().parent.parent / "data" / "tasks.db"
+import psycopg
+from psycopg.rows import dict_row
+
+import app.config  # noqa: F401  backend/.env 를 환경 변수로 읽어 둔다.
 
 SCHEMA = """
 CREATE TABLE users (
@@ -33,34 +34,38 @@ CREATE TABLE tasks (
 """
 
 
-def db_path() -> Path:
-    return Path(os.environ.get("TASKFLOW_DB", DEFAULT_DB_PATH))
+def database_url() -> str:
+    url = os.environ.get("DATABASE_URL", "").strip()
+    if not url:
+        raise RuntimeError("DATABASE_URL 이 비어 있습니다. backend/.env 에 값을 설정해 주세요.")
+    return url
 
 
-def connect() -> sqlite3.Connection:
-    conn = sqlite3.connect(db_path())
-    conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    return conn
+def connect() -> psycopg.Connection:
+    # prepare_threshold=None: Supabase pooler(6543, transaction 모드)는 prepared statement 를 지원하지 않는다.
+    return psycopg.connect(
+        database_url(), row_factory=dict_row, autocommit=True, prepare_threshold=None
+    )
 
 
-def _columns(conn: sqlite3.Connection, table: str) -> list[str]:
-    return [r["name"] for r in conn.execute(f"PRAGMA table_info({table})")]
+def _columns(conn: psycopg.Connection, table: str) -> list[str]:
+    rows = conn.execute(
+        "SELECT column_name FROM information_schema.columns"
+        " WHERE table_schema = 'public' AND table_name = %s",
+        (table,),
+    )
+    return [r["column_name"] for r in rows]
 
 
 def init_db() -> None:
-    """새 DB 에는 스키마를 만든다. 이미 있는 DB 는 alembic 으로 올린 것이어야 한다."""
-    db_path().parent.mkdir(parents=True, exist_ok=True)
+    """테이블은 backend/supabase/schema.sql 이 만든다. 여기서는 필요한 열이 있는지만 확인한다."""
     conn = connect()
     try:
         task_columns = _columns(conn, "tasks")
-        if not task_columns:
-            with conn:
-                conn.executescript(SCHEMA)
-        elif "owner_id" not in task_columns or "priority" not in task_columns:
+        if not {"owner_id", "priority", "due_date"} <= set(task_columns):
             raise RuntimeError(
-                "DB 가 아직 마이그레이션되지 않았습니다. "
-                "백업 후 'alembic upgrade head' 를 먼저 실행해 주세요."
+                "DB 에 tasks 테이블이 없거나 열이 모자랍니다. "
+                "backend/supabase/schema.sql 을 먼저 적용해 주세요."
             )
     finally:
         conn.close()
