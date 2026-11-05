@@ -80,8 +80,13 @@ export function getMe(): Promise<User> {
   return request<User>(`${API}/auth/me`)
 }
 
-export function listTasks(): Promise<Task[]> {
-  return request<Task[]>(BASE)
+// q · priority 는 선택이다. 비어 있는 값은 보내지 않으므로 인자 없이 부르면 전체 목록이다.
+export function listTasks(params: { q?: string; priority?: Priority | '' } = {}): Promise<Task[]> {
+  const query = new URLSearchParams()
+  if (params.q) query.set('q', params.q)
+  if (params.priority) query.set('priority', params.priority)
+  const qs = query.toString()
+  return request<Task[]>(qs ? `${BASE}?${qs}` : BASE)
 }
 
 export function createTask(

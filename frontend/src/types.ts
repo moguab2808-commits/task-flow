@@ -25,6 +25,12 @@ export const STATUS_LABEL: Record<Status, string> = {
   DONE: '완료',
 }
 
+// 검색과 필터 조건 (R-014). priority 가 빈 문자열이면 우선순위를 거르지 않는다.
+export interface SearchCondition {
+  q: string
+  priority: Priority | ''
+}
+
 export const PRIORITY_LABEL: Record<Priority, string> = {
   LOW: '낮음',
   NORMAL: '보통',

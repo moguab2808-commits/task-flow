@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Body, Depends, HTTPException, Response
+from fastapi import APIRouter, Body, Depends, HTTPException, Query, Response
 from pydantic import ValidationError
 
 from app import briefing, command, repository, suggest, weekplan
@@ -16,6 +16,7 @@ from app.schemas import (
     TaskCreate,
     TaskOut,
     WeekplanOut,
+    check_priority,
 )
 
 # 라우터 전체가 로그인을 요구한다. 401 확인이 입력 검증 · 소유 확인보다 먼저다.
@@ -27,8 +28,18 @@ NOT_FOUND = "이미 없는 카드입니다."
 
 
 @router.get("", response_model=list[TaskOut])
-def list_tasks(user: dict = Depends(get_current_user)):
-    return repository.list_tasks(user["id"])
+def list_tasks(
+    q: str | None = Query(None),
+    priority: str | None = Query(None),
+    user: dict = Depends(get_current_user),
+):
+    if priority is not None:
+        try:
+            check_priority(priority)
+        except ValueError as e:
+            detail = [{"loc": ["query", "priority"], "msg": str(e)}]
+            raise HTTPException(status_code=422, detail=detail) from e
+    return repository.list_tasks(user["id"], q, priority)
 
 
 @router.post("", response_model=TaskOut, status_code=201)
