@@ -2,6 +2,58 @@ body {
   font-family: system-ui, 'Segoe UI', sans-serif;
   /* 좁은 화면에서는 여백을 줄여 내용이 쓸 폭을 지킨다. */
   margin: clamp(1rem, 4vw, 2rem);
+  background: #f5f6fa;
+  color: #222;
+}
+
+h1 {
+  font-size: 1.5rem;
+  color: #3b4cca;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+  border: 1px solid #c8ccd8;
+  border-radius: 6px;
+  background: #fff;
+}
+
+input,
+select,
+textarea {
+  padding: 0.35rem 0.6rem;
+}
+
+button {
+  padding: 0.35rem 0.9rem;
+  cursor: pointer;
+}
+
+button:hover:not(:disabled) {
+  background: #eceefa;
+}
+
+button[type='submit'] {
+  background: #3b4cca;
+  border-color: #3b4cca;
+  color: #fff;
+}
+
+button[type='submit']:hover:not(:disabled) {
+  background: #2f3eab;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.link-button {
+  border: none;
+  background: none;
 }
 
 main {
@@ -82,9 +134,11 @@ main {
 }
 
 .task-card {
-  border: 1px solid #ccc;
-  border-radius: 6px;
+  background: #fff;
+  border: 1px solid #e0e3ec;
+  border-radius: 8px;
   padding: 0.75rem 1rem;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
 }
 
 .task-head {
@@ -176,6 +230,12 @@ main {
   .sections {
     grid-template-columns: minmax(0, 1fr);
   }
+}
+
+.section {
+  background: #e9ebf3;
+  border-radius: 10px;
+  padding: 0.75rem;
 }
 
 .section h2 {
