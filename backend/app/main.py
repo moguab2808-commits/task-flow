@@ -50,5 +50,6 @@ def storage_error(_: Request, __: psycopg.Error) -> JSONResponse:
 
 
 @app.get("/health")
+@app.get("/api/health")  # 운영 주소는 /api 아래로 확인한다. 기존 /health 도 그대로 둔다.
 def health() -> dict[str, str]:
     return {"status": "ok"}
