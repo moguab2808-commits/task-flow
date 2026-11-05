@@ -132,6 +132,8 @@ class SuggestIn(BaseModel):
 
     title: str
     description: str = ""
+    # 사용자가 이미 정한 마감일. 없으면 None. 있으면 AI 는 바꾸지 않고 참고만 한다.
+    due_date: str | None = None
 
     @field_validator("title")
     @classmethod
@@ -139,6 +141,11 @@ class SuggestIn(BaseModel):
         if not v.strip():
             raise ValueError("제목을 입력해 주세요.")
         return v
+
+    @field_validator("due_date")
+    @classmethod
+    def due_date_format(cls, v: str | None) -> str | None:
+        return check_due_date(v)
 
 
 class SuggestOut(BaseModel):

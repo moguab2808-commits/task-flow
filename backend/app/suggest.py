@@ -29,6 +29,11 @@ SYSTEM_PROMPT = (
     'JSON 객체 하나만 답한다: {"priority": ..., "due_date": ..., "reason": "한 문장"}'
 )
 USER_TEMPLATE = "Title: {title}\ndescription: {description}\n오늘 날짜: {today}"
+# 사용자가 마감일을 이미 정한 경우에만 USER_TEMPLATE 뒤에 붙인다.
+FIXED_DUE_TEMPLATE = (
+    "\n사용자가 정한 마감일: {due_date}"
+    "\n마감일은 바꾸지 말고 이 날짜를 근거로 priority 를 정한다. due_date 에는 같은 값을 쓴다."
+)
 
 OPTIONS_SYSTEM_PROMPT = (
     "너는 사용자가 적은 주제 한 줄을 할 일(Task) 여러 개로 나누는 도우미다. "
@@ -151,11 +156,17 @@ def _ask(system: str, user: str, max_tokens: int) -> str:
     return "".join(b.text for b in response.content if b.type == "text")
 
 
-def suggest(title: str, description: str) -> dict:
+def suggest(title: str, description: str, due_date: str | None = None) -> dict:
     user = USER_TEMPLATE.format(
         title=title, description=description, today=date.today().isoformat()
     )
-    return parse_suggestion(_ask(SYSTEM_PROMPT, user, MAX_TOKENS))
+    if due_date is not None:
+        user += FIXED_DUE_TEMPLATE.format(due_date=due_date)
+    result = parse_suggestion(_ask(SYSTEM_PROMPT, user, MAX_TOKENS))
+    if due_date is not None:
+        # 사용자가 정한 마감일은 모델 답이 아니라 서버가 그대로 돌려준다.
+        result["due_date"] = due_date
+    return result
 
 
 def suggest_options(title: str) -> dict:

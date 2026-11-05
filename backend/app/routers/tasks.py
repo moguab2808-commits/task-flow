@@ -42,7 +42,7 @@ def create_task(body: TaskCreate, user: dict = Depends(get_current_user)):
 def suggest_task(body: SuggestIn):
     # 제안만 돌려준다. 저장하지 않고 DB 도 건드리지 않는다.
     try:
-        return suggest.suggest(body.title, body.description)
+        return suggest.suggest(body.title, body.description, body.due_date)
     except suggest.SuggestError as e:
         raise HTTPException(status_code=e.status_code, detail=e.detail) from None
 

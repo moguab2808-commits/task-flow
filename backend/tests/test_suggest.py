@@ -279,3 +279,40 @@ def test_options_db_is_never_changed(client, tmp_path):
         FakeClient.result = result
         client.post(OPT_URL, json={"title": "발표"})
     assert _rows(db_path) == before
+
+
+# ---- 사용자가 정한 마감일을 함께 보내는 경우 (DB 를 쓰지 않는 단위 테스트) ----
+
+
+@pytest.fixture
+def fake_ai(monkeypatch):
+    monkeypatch.setenv("ANTHROPIC_API_KEY", "fake-key-for-test")
+    monkeypatch.setattr(suggest_mod.anthropic, "Anthropic", FakeClient)
+    FakeClient.calls = []
+    FakeClient.result = _resp(GOOD)
+
+
+def test_fixed_due_date_is_sent_and_kept(fake_ai):
+    # 모델이 다른 날짜를 답해도 사용자가 정한 마감일을 그대로 돌려준다.
+    out = suggest_mod.suggest("김장하기", "겨울철 대비", "2026-11-20")
+    assert out["due_date"] == "2026-11-20"
+    assert out["priority"] == "HIGH"
+    sent = FakeClient.calls[0]["messages"][0]["content"]
+    assert "사용자가 정한 마감일: 2026-11-20" in sent
+
+
+def test_no_due_date_keeps_old_behavior(fake_ai):
+    out = suggest_mod.suggest("보고서 제출", "내일까지")
+    assert out["due_date"] == "2026-10-29"  # 모델 답 그대로
+    assert "사용자가 정한 마감일" not in FakeClient.calls[0]["messages"][0]["content"]
+
+
+def test_suggest_in_due_date_validation():
+    from pydantic import ValidationError
+
+    from app.schemas import SuggestIn
+
+    assert SuggestIn(title="a").due_date is None
+    assert SuggestIn(title="a", due_date="2026-11-20").due_date == "2026-11-20"
+    with pytest.raises(ValidationError):
+        SuggestIn(title="a", due_date="내일")
