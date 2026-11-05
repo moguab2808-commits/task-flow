@@ -115,7 +115,7 @@ export default function TaskCard({ task, onChangeStatus, onEdit, onDelete }: Pro
               <AiSuggestButton
                 pending={ai.pending}
                 disabled={options.pending}
-                onClick={() => ai.suggest(title, description)}
+                onClick={() => ai.suggest(title, description, dueDate)}
               />
               <AiSuggestButton
                 label="AI 로 할 일 만들기"

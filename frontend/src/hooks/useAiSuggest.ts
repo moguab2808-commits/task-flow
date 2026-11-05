@@ -24,7 +24,7 @@ export function useAiSuggest(onApply: (suggestion: Suggestion) => void) {
   const generation = useRef(0)
 
   const suggest = useCallback(
-    async (title: string, description: string) => {
+    async (title: string, description: string, dueDate?: string) => {
       if (!title.trim()) {
         setMessage(MSG_TITLE_REQUIRED)
         return
@@ -33,7 +33,7 @@ export function useAiSuggest(onApply: (suggestion: Suggestion) => void) {
       setMessage(null)
       setPending(true)
       try {
-        const result = await suggestTask(title, description)
+        const result = await suggestTask(title, description, dueDate)
         if (mine !== generation.current) return
         onApply(result)
         setReason(result.reason)

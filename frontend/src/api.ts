@@ -125,11 +125,16 @@ export function deleteTask(id: number): Promise<void> {
 }
 
 // 제안만 받는다. 서버는 저장하지 않으므로 저장은 사용자가 따로 한다.
-export function suggestTask(title: string, description: string): Promise<Suggestion> {
+// dueDate 는 사용자가 이미 정한 마감일이다. 비어 있으면 보내지 않는다.
+export function suggestTask(
+  title: string,
+  description: string,
+  dueDate?: string,
+): Promise<Suggestion> {
   return request<Suggestion>(`${BASE}/suggest`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({ title, description }),
+    body: JSON.stringify(dueDate ? { title, description, due_date: dueDate } : { title, description }),
   })
 }
 
