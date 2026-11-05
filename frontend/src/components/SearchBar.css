@@ -1,0 +1,17 @@
+.search-bar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.search-bar input[type='search'] {
+  flex: 1 1 14rem;
+  min-width: 0;
+}
+
+.search-count {
+  margin: 0 0 0.75rem;
+  font-weight: bold;
+}

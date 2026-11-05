@@ -39,11 +39,29 @@ def _out(row, today: date) -> dict:
 # 모든 쿼리는 owner_id 로 범위를 좁힌다. 다른 사용자의 Task 는 없는 것과 같다.
 
 
-def list_tasks(owner_id: int) -> list[dict]:
+def _like_pattern(q: str) -> str:
+    """검색어를 ILIKE 부분 일치 패턴으로 바꾼다. 검색어 안의 \\ % _ 는 일반 문자로 처리한다 (ESCAPE '\\')."""
+    escaped = q.replace("\\", "\\\\").replace("%", "\\%").replace("_", "\\_")
+    return f"%{escaped}%"
+
+
+def list_tasks(
+    owner_id: int, q: str | None = None, priority: str | None = None
+) -> list[dict]:
+    # 조건 문구는 고정이고 값은 모두 %s 자리표시로 넘긴다. owner_id 조건은 항상 먼저 붙는다 (R-009).
+    where = "owner_id = %s"
+    params: list = [owner_id]
+    if q:
+        where += " AND (title ILIKE %s ESCAPE '\\' OR description ILIKE %s ESCAPE '\\')"
+        pattern = _like_pattern(q)
+        params += [pattern, pattern]
+    if priority is not None:
+        where += " AND priority = %s"
+        params.append(priority)
     conn = connect()
     try:
         rows = conn.execute(
-            "SELECT * FROM tasks WHERE owner_id = %s ORDER BY id ASC", (owner_id,)
+            f"SELECT * FROM tasks WHERE {where} ORDER BY id ASC", params
         ).fetchall()
         today = _today()
         # 상태가 세 값 밖인 행(손으로 고친 DB 등)은 응답 모양을 만들 수 없어 목록에서 뺀다. 데이터는 건드리지 않는다.
