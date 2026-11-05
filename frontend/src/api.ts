@@ -10,7 +10,7 @@ import type {
   Weekplan,
 } from './types'
 
-const API = 'http://localhost:8000/api'
+const API = '/api'
 const BASE = `${API}/tasks`
 
 export class ApiError extends Error {
